@@ -1,0 +1,307 @@
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator
+} from "react-native";
+import VariantModal from "../components/VariantModal";
+import { getServices } from "../api/api";
+
+export default function ServicesScreen({ route }) {
+  const { subcategoryId, title } = route.params;
+
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [cartItems, setCartItems] = useState({});
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState("");
+
+  /* =========================
+     FETCH SERVICES (WEB LOGIC)
+     ========================= */
+useEffect(() => {
+  fetchServices();
+}, [subcategoryId]);
+const fetchServices = async () => {
+  try {
+    const allServices = await getServices();
+
+    const filtered = allServices.filter(
+      (srv) =>
+        String(srv.subcategory_id) === String(subcategoryId) &&
+        Number(srv.is_active) === 1
+    );
+
+    setServices(filtered);
+  } catch (error) {
+    console.log("Service fetch error:", error);
+  } finally {
+    setLoading(false); // ✅ THIS WAS MISSING
+  }
+};
+
+  /* =========================
+     CART LOGIC
+     ========================= */
+  const getQty = (id) => cartItems[id]?.quantity || 0;
+
+  const handleIncrease = (item) => {
+    const qty = getQty(item.id) + 1;
+    setCartItems((prev) => ({
+      ...prev,
+      [item.id]: { ...item, quantity: qty }
+    }));
+  };
+
+  const handleDecrease = (item) => {
+    const qty = getQty(item.id);
+    if (qty <= 1) {
+      setCartItems((prev) => {
+        const copy = { ...prev };
+        delete copy[item.id];
+        return copy;
+      });
+    } else {
+      setCartItems((prev) => ({
+        ...prev,
+        [item.id]: { ...item, quantity: qty - 1 }
+      }));
+    }
+  };
+
+  const hasVariants = (srv) =>
+    Number(srv.classicPrice) > 0 ||
+    Number(srv.standardPrice) > 0 ||
+    Number(srv.primePrice) > 0;
+
+  const cartList = Object.values(cartItems);
+  const totalAmount = cartList.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0
+  );
+
+  /* =========================
+     UI
+     ========================= */
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#0D004C" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* HEADER */}
+      <Text style={styles.header}>{title}</Text>
+
+      {/* EMPTY STATE */}
+      {services.length === 0 && (
+        <Text style={styles.empty}>No services available</Text>
+      )}
+
+      {/* SERVICES LIST */}
+      <FlatList
+        data={services}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingBottom: 140 }}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{item.name}</Text>
+
+              <Text style={styles.price}>
+                ₹{item.offerPrice}{" "}
+                <Text style={styles.strike}>₹{item.salePrice}</Text>
+              </Text>
+
+              <Text style={styles.desc}>{item.description}</Text>
+            </View>
+
+            <View style={styles.right}>
+              {/* IMAGE (as you requested) */}
+              <Image source={{ uri: item.image }} style={styles.image} />
+
+              {getQty(item.id) === 0 ? (
+                <Pressable
+                  style={styles.addBtn}
+                  onPress={() => {
+                    if (hasVariants(item)) {
+                      setSelectedService(item);
+                    } else {
+                      handleIncrease({
+                        ...item,
+                        price: Number(item.price),
+                        variant: "default"
+                      });
+                    }
+                  }}
+                >
+                  <Text style={styles.addText}>Add</Text>
+                </Pressable>
+              ) : (
+                <View style={styles.qtyRow}>
+                  <Pressable onPress={() => handleDecrease(item)}>
+                    <Text style={styles.qtyBtn}>−</Text>
+                  </Pressable>
+                  <Text>{getQty(item.id)}</Text>
+                  <Pressable onPress={() => handleIncrease(item)}>
+                    <Text style={styles.qtyBtn}>+</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+      />
+
+      {/* CART FOOTER */}
+      {cartList.length > 0 && (
+        <View style={styles.cartBar}>
+          <Text style={styles.cartText}>
+            {cartList.length} items | ₹{totalAmount}
+          </Text>
+          <Pressable style={styles.viewCartBtn}>
+            <Text style={styles.viewCartText}>View Cart</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* VARIANT MODAL */}
+      <VariantModal
+        service={selectedService}
+        selectedVariant={selectedVariant}
+        setSelectedVariant={setSelectedVariant}
+        onClose={() => {
+          setSelectedService(null);
+          setSelectedVariant("");
+        }}
+        onAdd={(price, variant) => {
+          handleIncrease({
+            ...selectedService,
+            price,
+            variant
+          });
+          setSelectedService(null);
+          setSelectedVariant("");
+        }}
+      />
+    </View>
+  );
+}
+
+/* =========================
+   STYLES
+   ========================= */
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff" },
+
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+
+  header: {
+    fontSize: 20,
+    fontWeight: "700",
+    padding: 16,
+    color: "#0D004C"
+  },
+
+  empty: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#777"
+  },
+
+  card: {
+    flexDirection: "row",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: "#eee"
+  },
+
+  name: { fontSize: 16, fontWeight: "600", color: "#0D004C" },
+
+  price: { marginTop: 4, fontWeight: "600" },
+
+  strike: {
+    textDecorationLine: "line-through",
+    color: "#888",
+    fontSize: 12
+  },
+
+  desc: {
+    fontSize: 12,
+    color: "#555",
+    marginTop: 6
+  },
+
+  right: { alignItems: "center" },
+
+  image: {
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    marginBottom: 8
+  },
+
+  addBtn: {
+    borderWidth: 1,
+    borderColor: "#0D004C",
+    paddingHorizontal: 18,
+    paddingVertical: 4,
+    borderRadius: 6
+  },
+
+  addText: { color: "#0D004C", fontWeight: "600" },
+
+  qtyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#0D004C",
+    paddingHorizontal: 8,
+    borderRadius: 6
+  },
+
+  qtyBtn: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0D004C"
+  },
+
+  cartBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#0D004C",
+    padding: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+
+  cartText: { color: "#fff", fontWeight: "600" },
+
+  viewCartBtn: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 6
+  },
+
+  viewCartText: {
+    color: "#0D004C",
+    fontWeight: "700"
+  }
+});

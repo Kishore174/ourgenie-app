@@ -8,82 +8,64 @@ import {
   StyleSheet,
   ActivityIndicator
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import VariantModal from "../components/VariantModal";
 import { getServices } from "../api/api";
+import { useCart } from "../context/CartContext";
+import { useNavigation } from "@react-navigation/native";
+
 
 export default function ServicesScreen({ route }) {
   const { subcategoryId, title } = route.params;
+const navigation = useNavigation();
+
+  /* ✅ GLOBAL CART */
+  const { cartItems, addItem, removeItem } = useCart();
 
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [cartItems, setCartItems] = useState({});
   const [selectedService, setSelectedService] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState("");
 
   /* =========================
-     FETCH SERVICES (WEB LOGIC)
+     FETCH SERVICES
      ========================= */
-useEffect(() => {
-  fetchServices();
-}, [subcategoryId]);
-const fetchServices = async () => {
-  try {
-    const allServices = await getServices();
+  useEffect(() => {
+    fetchServices();
+  }, [subcategoryId]);
 
-    const filtered = allServices.filter(
-      (srv) =>
-        String(srv.subcategory_id) === String(subcategoryId) &&
-        Number(srv.is_active) === 1
-    );
-
-    setServices(filtered);
-  } catch (error) {
-    console.log("Service fetch error:", error);
-  } finally {
-    setLoading(false); // ✅ THIS WAS MISSING
-  }
-};
-
-  /* =========================
-     CART LOGIC
-     ========================= */
-  const getQty = (id) => cartItems[id]?.quantity || 0;
-
-  const handleIncrease = (item) => {
-    const qty = getQty(item.id) + 1;
-    setCartItems((prev) => ({
-      ...prev,
-      [item.id]: { ...item, quantity: qty }
-    }));
-  };
-
-  const handleDecrease = (item) => {
-    const qty = getQty(item.id);
-    if (qty <= 1) {
-      setCartItems((prev) => {
-        const copy = { ...prev };
-        delete copy[item.id];
-        return copy;
-      });
-    } else {
-      setCartItems((prev) => ({
-        ...prev,
-        [item.id]: { ...item, quantity: qty - 1 }
-      }));
+  const fetchServices = async () => {
+    try {
+      const allServices = await getServices();
+      const filtered = allServices.filter(
+        (srv) =>
+          String(srv.subcategory_id) === String(subcategoryId) &&
+          Number(srv.is_active) === 1
+      );
+      setServices(filtered);
+    } catch (error) {
+      console.log("Service fetch error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const hasVariants = (srv) =>
-    Number(srv.classicPrice) > 0 ||
-    Number(srv.standardPrice) > 0 ||
-    Number(srv.primePrice) > 0;
+  /* =========================
+     CART HELPERS
+     ========================= */
+  const getQty = (id) => cartItems[id]?.quantity || 0;
 
   const cartList = Object.values(cartItems);
   const totalAmount = cartList.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
     0
   );
+
+  const hasVariants = (srv) =>
+    Number(srv.classicPrice) > 0 ||
+    Number(srv.standardPrice) > 0 ||
+    Number(srv.primePrice) > 0;
 
   /* =========================
      UI
@@ -97,102 +79,107 @@ const fetchServices = async () => {
   }
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <Text style={styles.header}>{title}</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Text style={styles.header}>{title}</Text>
 
-      {/* EMPTY STATE */}
-      {services.length === 0 && (
-        <Text style={styles.empty}>No services available</Text>
-      )}
+        {services.length === 0 && (
+          <Text style={styles.empty}>No services available</Text>
+        )}
 
-      {/* SERVICES LIST */}
-      <FlatList
-        data={services}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ paddingBottom: 140 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.name}</Text>
+        <FlatList
+          data={services}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 140 }}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{item.name}</Text>
 
-              <Text style={styles.price}>
-                ₹{item.offerPrice}{" "}
-                <Text style={styles.strike}>₹{item.salePrice}</Text>
-              </Text>
+                <Text style={styles.price}>
+                  ₹{item.price}{" "}
+                  <Text style={styles.strike}>₹{item.salePrice}</Text>
+                </Text>
 
-              <Text style={styles.desc}>{item.description}</Text>
-            </View>
+                <Text style={styles.desc}>{item.description}</Text>
+              </View>
 
-            <View style={styles.right}>
-              {/* IMAGE (as you requested) */}
-              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.right}>
+                <Image
+                  source={{ uri: `http://skishore.in/api/public/${item.image}` }}
+                  style={styles.image}
+                />
 
-              {getQty(item.id) === 0 ? (
-                <Pressable
-                  style={styles.addBtn}
-                  onPress={() => {
-                    if (hasVariants(item)) {
-                      setSelectedService(item);
-                    } else {
-                      handleIncrease({
-                        ...item,
-                        price: Number(item.price),
-                        variant: "default"
-                      });
-                    }
-                  }}
-                >
-                  <Text style={styles.addText}>Add</Text>
-                </Pressable>
-              ) : (
-                <View style={styles.qtyRow}>
-                  <Pressable onPress={() => handleDecrease(item)}>
-                    <Text style={styles.qtyBtn}>−</Text>
+                {getQty(item.id) === 0 ? (
+                  <Pressable
+                    style={styles.addBtn}
+                    onPress={() => {
+                      if (hasVariants(item)) {
+                        setSelectedService(item);
+                      } else {
+                        addItem({
+                          ...item,
+                          price: Number(item.price),
+                          variant: "default"
+                        });
+                      }
+                    }}
+                  >
+                    <Text style={styles.addText}>Add</Text>
                   </Pressable>
-                  <Text>{getQty(item.id)}</Text>
-                  <Pressable onPress={() => handleIncrease(item)}>
-                    <Text style={styles.qtyBtn}>+</Text>
-                  </Pressable>
-                </View>
-              )}
+                ) : (
+                  <View style={styles.qtyRow}>
+                    <Pressable onPress={() => removeItem(item)}>
+                      <Text style={styles.qtyBtn}>−</Text>
+                    </Pressable>
+                    <Text>{getQty(item.id)}</Text>
+                    <Pressable onPress={() => addItem(item)}>
+                      <Text style={styles.qtyBtn}>+</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
             </View>
+          )}
+        />
+
+        {/* CART BAR */}
+        {cartList.length > 0 && (
+          <View style={styles.cartBar}>
+            <Text style={styles.cartText}>
+              {cartList.length} items | ₹{totalAmount}
+            </Text>
+        <Pressable
+  style={styles.viewCartBtn}
+  onPress={() => navigation.navigate("Cart")}
+>
+  <Text style={styles.viewCartText}>View Cart</Text>
+</Pressable>
+
           </View>
         )}
-      />
 
-      {/* CART FOOTER */}
-      {cartList.length > 0 && (
-        <View style={styles.cartBar}>
-          <Text style={styles.cartText}>
-            {cartList.length} items | ₹{totalAmount}
-          </Text>
-          <Pressable style={styles.viewCartBtn}>
-            <Text style={styles.viewCartText}>View Cart</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* VARIANT MODAL */}
-      <VariantModal
-        service={selectedService}
-        selectedVariant={selectedVariant}
-        setSelectedVariant={setSelectedVariant}
-        onClose={() => {
-          setSelectedService(null);
-          setSelectedVariant("");
-        }}
-        onAdd={(price, variant) => {
-          handleIncrease({
-            ...selectedService,
-            price,
-            variant
-          });
-          setSelectedService(null);
-          setSelectedVariant("");
-        }}
-      />
-    </View>
+        {/* VARIANT MODAL */}
+        <VariantModal
+          service={selectedService}
+          selectedVariant={selectedVariant}
+          setSelectedVariant={setSelectedVariant}
+          onClose={() => {
+            setSelectedService(null);
+            setSelectedVariant("");
+          }}
+          onAdd={(price, variant) => {
+            addItem({
+              ...selectedService,
+              price,
+              variant
+            });
+            setSelectedService(null);
+            setSelectedVariant("");
+          }}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -201,12 +188,7 @@ const fetchServices = async () => {
    ========================= */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center"
-  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   header: {
     fontSize: 20,
@@ -215,11 +197,7 @@ const styles = StyleSheet.create({
     color: "#0D004C"
   },
 
-  empty: {
-    textAlign: "center",
-    marginTop: 40,
-    color: "#777"
-  },
+  empty: { textAlign: "center", marginTop: 40, color: "#777" },
 
   card: {
     flexDirection: "row",
@@ -229,20 +207,9 @@ const styles = StyleSheet.create({
   },
 
   name: { fontSize: 16, fontWeight: "600", color: "#0D004C" },
-
   price: { marginTop: 4, fontWeight: "600" },
-
-  strike: {
-    textDecorationLine: "line-through",
-    color: "#888",
-    fontSize: 12
-  },
-
-  desc: {
-    fontSize: 12,
-    color: "#555",
-    marginTop: 6
-  },
+  strike: { textDecorationLine: "line-through", color: "#888", fontSize: 12 },
+  desc: { fontSize: 12, color: "#555", marginTop: 6 },
 
   right: { alignItems: "center" },
 
@@ -273,11 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 6
   },
 
-  qtyBtn: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#0D004C"
-  },
+  qtyBtn: { fontSize: 18, fontWeight: "700", color: "#0D004C" },
 
   cartBar: {
     position: "absolute",
@@ -300,8 +263,5 @@ const styles = StyleSheet.create({
     borderRadius: 6
   },
 
-  viewCartText: {
-    color: "#0D004C",
-    fontWeight: "700"
-  }
+  viewCartText: { color: "#0D004C", fontWeight: "700" }
 });

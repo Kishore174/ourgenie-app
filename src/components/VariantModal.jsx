@@ -1,11 +1,10 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Modal,
-  Pressable,
-  StyleSheet
-} from "react-native";
+import { View, Text, Modal, Pressable, StyleSheet } from "react-native";
+
+const toNumber = (v) => {
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+};
 
 export default function VariantModal({
   service,
@@ -16,11 +15,19 @@ export default function VariantModal({
 }) {
   if (!service) return null;
 
-  const variants = [
-    { key: "classic", price: service.classicPrice },
-    { key: "standard", price: service.standardPrice },
-    { key: "premium", price: service.primePrice }
-  ].filter(v => Number(v.price) > 0);
+  // 🔥 SAME LOGIC AS WEB
+  const variantPrices = {
+    classic: toNumber(service.classicPrice),
+    standard: toNumber(service.standardPrice),
+    premium: toNumber(service.primePrice)
+  };
+
+  const variants = Object.keys(variantPrices)
+    .filter(key => variantPrices[key] > 0)
+    .map(key => ({
+      key,
+      price: variantPrices[key]
+    }));
 
   return (
     <Modal transparent animationType="slide">
@@ -39,7 +46,9 @@ export default function VariantModal({
               ]}
               onPress={() => setSelectedVariant(v.key)}
             >
-              <Text style={styles.variant}>{v.key.toUpperCase()}</Text>
+              <Text style={styles.variant}>
+                {v.key.toUpperCase()}
+              </Text>
               <Text>₹{v.price}</Text>
             </Pressable>
           ))}
@@ -51,13 +60,12 @@ export default function VariantModal({
 
             <Pressable
               disabled={!selectedVariant}
-              onPress={() =>
-                onAdd(
-                  Number(service.price) +
-                    Number(service[selectedVariant + "Price"]),
-                  selectedVariant
-                )
-              }
+              onPress={() => {
+                const basePrice = toNumber(service.price);
+                const variantPrice = variantPrices[selectedVariant];
+
+                onAdd(basePrice + variantPrice, selectedVariant);
+              }}
             >
               <Text style={styles.add}>Add</Text>
             </Pressable>
@@ -96,9 +104,7 @@ const styles = StyleSheet.create({
     borderColor: "#0D004C",
     backgroundColor: "#f0f4ff"
   },
-  variant: {
-    fontWeight: "600"
-  },
+  variant: { fontWeight: "600" },
   actions: {
     flexDirection: "row",
     justifyContent: "space-between",

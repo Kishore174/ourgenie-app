@@ -1,75 +1,121 @@
 import React from "react";
+ 
+import  { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet
+  StyleSheet,
+  Pressable
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { Pressable } from "react-native";
 
-export default function Header({ location, address }) {
+import { useCart } from "../context/CartContext";
+import { useLocationContext } from "../context/LocationContext";
+import LocationModal from "./LocationModal";
+
+export default function Header() {
   const navigation = useNavigation();
+  const { cartItems } = useCart();
+  const { location } = useLocationContext();
+
+  const [open, setOpen] = useState(false);
+
+  const cartCount = Object.values(cartItems).reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safe}>
-      <View style={styles.container}>
+    <>
+      <SafeAreaView edges={["top"]} style={styles.safe}>
+        <View style={styles.container}>
 
-        {/* Top Row: Location + Icons */}
-        <View style={styles.topRow}>
-          <View style={styles.locationBox}>
-            <Ionicons name="location-outline" size={16} color="#fff" />
-            <View>
-              <Text style={styles.locationTitle}>{location}</Text>
-              <Text style={styles.locationSub}>{address}</Text>
-            </View>
-          </View>
-
-          <View style={styles.iconRow}>
-          <Pressable
-  style={({ pressed }) => [
-    styles.circleBtn,
-    pressed && { transform: [{ scale: 0.95 }] }
-  ]}
-  onPress={() => navigation.navigate("Notifications")}
+          {/* TOP ROW */}
+          <View style={styles.topRow}>
+        <Pressable
+  style={styles.locationBox}
+  onPress={() => setOpen(true)}
 >
-  <Ionicons name="notifications-outline" size={20} />
+  <Ionicons name="location-outline" size={16} color="#fff" />
+
+  <View>
+    <Text style={styles.locationTitle}>
+      {location.area}
+    </Text>
+    <Text style={styles.locationSub} numberOfLines={1}>
+      {location.full}
+    </Text>
+  </View>
+
+  <Ionicons
+    name="chevron-down"
+    size={16}
+    color="#fff"
+    style={{ marginLeft: 4 }}
+  />
 </Pressable>
 
 
-            <TouchableOpacity
-              style={styles.circleBtn}
-              onPress={() => navigation.navigate("Profile")}
-            >
-              <Ionicons name="person-outline" size={20} />
-            </TouchableOpacity>
+            {/* ICONS */}
+            <View style={styles.iconRow}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.circleBtn,
+                  pressed && { transform: [{ scale: 0.95 }] }
+                ]}
+                onPress={() => navigation.navigate("Notifications")}
+              >
+                <Ionicons name="notifications-outline" size={20} />
+              </Pressable>
 
-            <TouchableOpacity
-              style={styles.circleBtn}
-              onPress={() => navigation.navigate("Cart")}
-            >
-              <Ionicons name="cart-outline" size={20} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.circleBtn}
+                onPress={() => navigation.navigate("Profile")}
+              >
+                <Ionicons name="person-outline" size={20} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.circleBtn}
+                onPress={() => navigation.navigate("Cart")}
+              >
+                <Ionicons name="cart-outline" size={20} />
+
+                {cartCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Search */}
-        <View style={styles.searchBox}>
-          <Ionicons name="search-outline" size={18} color="#666" />
-          <TextInput
-            placeholder="Search for 'Facial'"
-            style={styles.input}
-            placeholderTextColor="#666"
-          />
-        </View>
+          {/* SEARCH */}
+          <View style={styles.searchBox}>
+            <Ionicons name="search-outline" size={18} color="#666" />
+            <TextInput
+              placeholder="Search for 'Facial'"
+              style={styles.input}
+              placeholderTextColor="#666"
+            />
+          </View>
 
-      </View>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+
+      {/* LOCATION MODAL */}
+      <LocationModal
+        visible={open}
+        onClose={() => setOpen(false)}
+      />
+    </>
   );
 }
+
 const styles = StyleSheet.create({
   safe: {
     backgroundColor: "#0D004C"
@@ -146,6 +192,23 @@ const styles = StyleSheet.create({
     elevation: 4
   },
 
+  badge: {
+  position: "absolute",
+  top: -4,
+  right: -4,
+  backgroundColor: "#FF3B30",
+  width: 18,
+  height: 18,
+  borderRadius: 9,
+  justifyContent: "center",
+  alignItems: "center"
+},
+badgeText: {
+  color: "#fff",
+  fontSize: 10,
+  fontWeight: "700"
+}
+,
   searchBox: {
     marginTop: 14,
     flexDirection: "row",

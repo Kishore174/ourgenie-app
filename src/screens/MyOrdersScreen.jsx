@@ -20,14 +20,21 @@ export default function MyOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user?.id) return;
+useEffect(() => {
+  if (!user?.id) {
+    setOrders([]);
+    setLoading(false);
+    return;
+  }
 
-    getOrdersByUser(user.id)
-      .then(setOrders)
-      .catch((err) => console.log("Orders error", err))
-      .finally(() => setLoading(false));
-  }, []);
+  setLoading(true);
+
+  getOrdersByUser(user.id)
+    .then(setOrders)
+    .catch((err) => console.log("Orders error", err))
+    .finally(() => setLoading(false));
+}, [user]);
+
 
 const renderItem = ({ item }) => {
   const statusColor =

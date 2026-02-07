@@ -31,7 +31,7 @@ export default function Header() {
 
   return (
     <>
-      <SafeAreaView edges={["top"]} style={styles.safe}>
+      {/* <SafeAreaView >  */}
         <View style={styles.container}>
 
           {/* TOP ROW */}
@@ -105,7 +105,7 @@ export default function Header() {
           </View>
 
         </View>
-      </SafeAreaView>
+      {/* </SafeAreaView> */}
 
       {/* LOCATION MODAL */}
       <LocationModal

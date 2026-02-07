@@ -14,6 +14,7 @@ import { getServices } from "../api/api";
 import { useCart } from "../context/CartContext";
 import { useNavigation } from "@react-navigation/native";
 
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ServicesScreen({ route }) {
   const { subcategoryId, title } = route.params;
@@ -80,8 +81,17 @@ const navigation = useNavigation();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.navigate("Home")}>
+          <Ionicons name="arrow-back" size={22} color="#111" />
+        </Pressable>
+      
+               <Text style={styles.header}>{title}</Text>
+
+      
+        <View style={{ width: 22 }} />
+      </View>
       <View style={styles.container}>
-        <Text style={styles.header}>{title}</Text>
 
         {services.length === 0 && (
           <Text style={styles.empty}>No services available</Text>
@@ -191,11 +201,15 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   header: {
-    fontSize: 20,
-    fontWeight: "700",
-    padding: 16,
-    color: "#0D004C"
-  },
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: 16,
+  fontSize: 20,
+  fontWeight: "700",
+  backgroundColor: "#fff"
+},
+  
 
   empty: { textAlign: "center", marginTop: 40, color: "#777" },
 

@@ -57,7 +57,7 @@ export default function PayUScreen() {
         renderLoading={() => (
           <ActivityIndicator
             size="large"
-            style={{ marginTop: 40 }}
+            style={{ marginTop:80 }}
           />
         )}
       />

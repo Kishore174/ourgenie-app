@@ -71,9 +71,7 @@ export default function RegisterScreen() {
 
         <View style={styles.card}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Join us for hassle-free services 🚀
-          </Text>
+         
 
           {/* NAME */}
           <View style={styles.inputBox}>
@@ -169,7 +167,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     color: "#0D004C",
-    letterSpacing: 0.3
+    letterSpacing: 0.3,
+   
   },
 
   subtitle: {
@@ -189,7 +188,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 50,
     marginBottom: 14,
-    gap: 10
+    gap: 10,
+    top:8
   },
 
   input: {

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocationContext } from "../context/LocationContext";
+import { useNavigation } from "@react-navigation/native";
 
 export default function LocationModal({ visible, onClose }) {
   const { setLocation, getLiveLocation } = useLocationContext();
@@ -18,6 +19,7 @@ export default function LocationModal({ visible, onClose }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   const debounceRef = useRef(null);
 const searchLocation = async (text) => {
@@ -74,7 +76,10 @@ const selectPlace = (item) => {
 
   return (
     <Modal visible={visible} animationType="slide">
-      <View style={styles.container}>
+        <Pressable onPress={() => navigation.navigate("Home")}>
+          <Ionicons name="arrow-back" size={22} color="#111" />
+        </Pressable> 
+      <View style={styles.container} >
         <Text style={styles.title}>Select Location</Text>
 
         {/* SEARCH */}

@@ -11,6 +11,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getTimeSlots } from "../api/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function ScheduleScreen() {
   const navigation = useNavigation();
@@ -22,7 +23,15 @@ export default function ScheduleScreen() {
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(true);
+const { user } = useAuth();
 
+useEffect(() => {
+  if (!user) {
+    navigation.replace("Login", {
+      redirectTo: "Cart"
+    });
+  }
+}, []);
   /* FETCH TIME SLOTS */
   useEffect(() => {
     loadSlots();
@@ -211,7 +220,7 @@ const styles = StyleSheet.create({
 
   footer: {
     position: "absolute",
-    bottom: 24,
+    bottom: 56,
     left: 0,
     right: 0,
     paddingHorizontal: 16

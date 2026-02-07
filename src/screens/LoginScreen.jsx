@@ -21,6 +21,7 @@ export default function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!identifier || !password) {
@@ -41,12 +42,19 @@ export default function LoginScreen() {
       } else {
         Alert.alert("Login failed", res.error || "Invalid credentials");
       }
-    } catch (e) {
-      Alert.alert("Error", "Something went wrong");
+    } catch (err) {
+  const message =
+    err?.response?.data?.error ||
+    err?.response?.data?.message ||
+    "Invalid email or password";
+
+  Alert.alert("Login Failed", message);
+
     } finally {
       setLoading(false);
     }
   };
+  
 
 return (
   <SafeAreaView style={styles.container}>
@@ -72,18 +80,27 @@ return (
         />
       </View>
 
-      {/* PASSWORD */}
-      <View style={styles.inputBox}>
-        <Ionicons name="lock-closed-outline" size={18} color="#9ca3af" />
-        <TextInput
-          placeholder="Password"
-          placeholderTextColor="#9ca3af"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}
-        />
-      </View>
+    <View style={styles.inputBox}>
+  <Ionicons name="lock-closed-outline" size={18} color="#9ca3af" />
+
+  <TextInput
+    placeholder="Password"
+    placeholderTextColor="#9ca3af"
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+    style={styles.input}
+  />
+
+  <Pressable onPress={() => setShowPassword(!showPassword)}>
+    <Ionicons
+      name={showPassword ? "eye-off-outline" : "eye-outline"}
+      size={18}
+      color="#6b7280"
+    />
+  </Pressable>
+</View>
+
 
       <Pressable style={styles.btn} onPress={handleLogin}>
         {loading ? (

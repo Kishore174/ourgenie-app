@@ -15,7 +15,7 @@ export const registerUser = async (name, email, password) => {
   });
   return res.data;
 };
- 
+  export default api;
 export const loginUser = async (identifier, password) => {
   const res = await api.post("/login", {
     identifier,
@@ -55,4 +55,11 @@ export const getTimeSlots = async () => {
   return res.data;
 };
 
- 
+ export const getAllBanners = async () => {
+  try {
+    const res = await api.get("banners");
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
+};

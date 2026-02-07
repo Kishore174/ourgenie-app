@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,17 +11,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../context/CartContext";
-
+import { useAuth } from "../context/AuthContext";
+ 
+import SmartImage from "../components/SmartImage";
 export default function CartScreen() {
   const navigation = useNavigation();
   const { cartItems, addItem, removeItem } = useCart();
-
+  const { user } = useAuth();
   const items = Object.values(cartItems);
-
+const [failed, setFailed] = useState(false);
   const total = items.reduce(
     (sum, i) => sum + Number(i.price) * i.quantity,
     0
   );
+// const navigation = useNavigation();
+
+  useEffect(() => {
+    if (!user) {
+      navigation.replace("Login", {
+        redirectTo: "Cart"
+      });
+    }
+  }, [user]);
+
+  if (!user) return null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,10 +68,10 @@ export default function CartScreen() {
             contentContainerStyle={{ paddingBottom: 120 }}
             renderItem={({ item }) => (
               <View style={styles.card}>
-                <Image
-                  source={{ uri: `http://skishore.in/api/public/${item.image}` }}
-                  style={styles.image}
-                />
+<SmartImage
+  image={item.image}
+  style={styles.image}
+/>
 
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name}>{item.name}</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,14 +14,23 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useCart } from "../context/CartContext";
 import { createOrder } from "../api/api";
 import { useAuth } from "../context/AuthContext";
+import { useLoader } from "../context/LoaderContext";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { cartItems, clearCart } = useCart();
  const { user } = useAuth();
+const { setLoading } = useLoader();
+ 
 
-
+useEffect(() => {
+  if (!user) {
+    navigation.replace("Login", {
+      redirectTo: "Cart"
+    });
+  }
+}, []);
 
   const {
     address,
@@ -34,7 +43,7 @@ if (!schedule) {
 }
 
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoader] = useState(false);
 
   const items = Object.values(cartItems);
 
@@ -67,6 +76,7 @@ const handleConfirm = async () => {
 
   try {
     setLoading(true);
+    setLoader(true);
 
     const payload = {
       services: items.map(i => i.id).join(","),
@@ -124,7 +134,8 @@ const handleConfirm = async () => {
     console.error("Order error:", err?.response?.data || err);
     Alert.alert("Error", "Something went wrong");
   } finally {
-    setLoading(false);
+     setLoading(false);
+    setLoader(false);
   }
 };
 
@@ -296,7 +307,7 @@ const styles = StyleSheet.create({
 
   footer: {
     position: "absolute",
-    bottom: 24,
+    bottom: 56,
     left: 0,
     right: 0,
     paddingHorizontal: 16

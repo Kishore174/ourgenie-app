@@ -22,41 +22,44 @@ import { AuthProvider } from "../context/AuthContext";
 import OrderSuccessScreen from "../screens/OrderSuccessScreen";
 import PayUScreen from "../screens/PayUScreen";
 import MyOrdersScreen from "../screens/MyOrdersScreen";
+import { LoaderProvider } from "../context/LoaderContext";
 
 const Stack = createNativeStackNavigator();
+
 
 export default function AppNavigator() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <LocationProvider>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              
-              {/* MAIN */}
-              <Stack.Screen name="Home" component={HomeScreen} />
-              <Stack.Screen name="Services" component={ServicesScreen} />
+      <LoaderProvider>
+        <CartProvider>
+          <LocationProvider>
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {/* MAIN */}
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="Services" component={ServicesScreen} />
 
-              {/* AUTH */}
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
+                {/* AUTH */}
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Register" component={RegisterScreen} />
 
-              {/* PROFILE */}
-              <Stack.Screen name="Profile" component={ProfileScreen} />
+                {/* PROFILE */}
+                <Stack.Screen name="Profile" component={ProfileScreen} />
 
-              {/* CART FLOW */}
-              <Stack.Screen name="Cart" component={CartScreen} />
-              <Stack.Screen name="Address" component={AddressScreen} />
-              <Stack.Screen name="Schedule" component={ScheduleScreen} />
-              <Stack.Screen name="Payment" component={PaymentScreen} />
-<Stack.Screen name="PayU" component={PayUScreen} />
-<Stack.Screen name="OrderSuccess" component={OrderSuccessScreen} />
-<Stack.Screen name="MyOrders" component={MyOrdersScreen} />
-
-            </Stack.Navigator>
-          </NavigationContainer>
-        </LocationProvider>
-      </CartProvider>
+                {/* CART FLOW */}
+                <Stack.Screen name="Cart" component={CartScreen} />
+                <Stack.Screen name="Address" component={AddressScreen} />
+                <Stack.Screen name="Schedule" component={ScheduleScreen} />
+                <Stack.Screen name="Payment" component={PaymentScreen} />
+                <Stack.Screen name="PayU" component={PayUScreen} />
+                <Stack.Screen name="OrderSuccess" component={OrderSuccessScreen} />
+                <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </LocationProvider>
+        </CartProvider>
+      </LoaderProvider>
     </AuthProvider>
   );
 }
+

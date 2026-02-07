@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useLocationContext } from "../context/LocationContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function AddressScreen() {
   const navigation = useNavigation();
@@ -21,7 +22,15 @@ export default function AddressScreen() {
   const [landmark, setLandmark] = useState("");
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
+const { user } = useAuth();
 
+useEffect(() => {
+  if (!user) {
+    navigation.replace("Login", {
+      redirectTo: "Cart"
+    });
+  }
+}, []);
   const isValid =
     address && street && name && mobile.length === 10;
 
@@ -173,7 +182,7 @@ const styles = StyleSheet.create({
 
   footer: {
     position: "absolute",
-    bottom: 24,
+    bottom:56,
     left: 0,
     right: 0,
     paddingHorizontal: 16

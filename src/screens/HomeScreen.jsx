@@ -5,18 +5,28 @@ import {
   FlatList,
   Image,
   Pressable,
-  StyleSheet
+  StyleSheet,
+  ScrollView
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import Header from "../components/Header";
-import { getNestedCategories } from "../api/api";
+import Banner from "../components/Banner";
+import MostBooked from "../components/MostBooked";
 import CategoryModal from "../components/CategoryModal";
+
+import { getNestedCategories } from "../api/api";
 import useLocation from "../hooks/useLocation";
+import { useLoader } from "../context/LoaderContext";
+import WhyChooseUs from "../components/WhyChooseUs";
+import PopularNearYou from "../components/PopularNearYou";
+import HowItWorks from "../components/HowItWorks";
 
 export default function HomeScreen() {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const location = useLocation();
+  const { setLoading } = useLoader();
 
   useEffect(() => {
     loadCategories();
@@ -24,49 +34,68 @@ export default function HomeScreen() {
 
   const loadCategories = async () => {
     try {
+      setLoading(true);
       const data = await getNestedCategories();
       setCategories(data);
     } catch (err) {
       console.log("Category error", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <Header location={location.area} address={location.full} />
 
-      {/* TITLE */}
-      <View style={styles.section}>
-        <Text style={styles.title}>Explore all services</Text>
+      {/* ✅ ONE SCROLL CONTAINER */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 30 }}
+      >
+        {/* 🔥 Banner */}
+        <View style={{ marginTop: 10 }}>
+          <Banner />
+        </View>
 
-        {/* GRID */}
-        <FlatList
-          data={categories}
-          numColumns={3}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.card}
-              onPress={() => setSelectedCategory(item)}
-            >
-              <View style={styles.imageBox}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.icon}
-                  resizeMode="contain"
-                />
-              </View>
+        {/* 🔥 Categories */}
+        <View style={styles.section}>
+          <Text style={styles.title}>Explore all services</Text>
 
-              <Text style={styles.cardText} numberOfLines={2}>
-                {item.name}
-              </Text>
-            </Pressable>
-          )}
-        />
-      </View>
+          <FlatList
+            data={categories}
+            numColumns={3}
+            scrollEnabled={false}   // ✅ IMPORTANT
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.card}
+                onPress={() => setSelectedCategory(item)}
+              >
+                <View style={styles.imageBox}>
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.icon}
+                    resizeMode="contain"
+                  />
+                </View>
 
-      {/* CATEGORY MODAL */}
+                <Text style={styles.cardText} numberOfLines={2}>
+                  {item.name}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </View>
+
+        {/* 🔥 Most Booked */}
+        <MostBooked />
+        <WhyChooseUs/>
+        <PopularNearYou/>
+        <HowItWorks/>
+      </ScrollView>
+
+      {/* 🔥 Category Modal */}
       <CategoryModal
         category={selectedCategory}
         onClose={() => setSelectedCategory(null)}
@@ -118,4 +147,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6
   }
 });
-

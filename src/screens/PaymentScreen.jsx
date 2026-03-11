@@ -182,6 +182,7 @@ export default function PaymentScreen() {
 
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}
+        backgroundColor="#F9FAFB"
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
@@ -347,7 +348,7 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F9FAFB" },
+  safe: { flex: 1, backgroundColor: "#0D004C" },
 
   // HEADER
   header: {
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
   // FOOTER
   footer: {
     position: "absolute",
-    bottom: 24,
+    bottom: 56,
     left: 16,
     right: 16,
     gap: 10,

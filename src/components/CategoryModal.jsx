@@ -16,7 +16,10 @@ export default function CategoryModal({ category, onClose }) {
   if (!category) return null;
 
   return (
-    <Modal transparent animationType="slide">
+    <Modal transparent animationType="slide"
+      visible={!!category}
+  statusBarTranslucent
+  onRequestClose={onClose}>
       {/* BACKDROP */}
       <Pressable style={styles.overlay} onPress={onClose} />
 

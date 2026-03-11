@@ -134,6 +134,7 @@ export default function ScheduleScreen() {
       </View>
 
       <Animated.ScrollView
+      backgroundColor="#F9FAFB"
         style={{ opacity: fadeAnim }}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -330,7 +331,7 @@ function SlotChip({ slot, index, selected, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F9FAFB" },
+  safe: { flex: 1, backgroundColor: "#0D004C" },
 
   // HEADER
   header: {

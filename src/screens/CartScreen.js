@@ -84,7 +84,7 @@ export default function CartScreen() {
 
       {/* EMPTY STATE */}
       {items.length === 0 ? (
-        <View style={styles.emptyWrap}>
+        <View style={styles.emptyWrap}  backgroundColor="#FFFF">
           <View style={styles.emptyIconWrap}>
             <Ionicons name="cart-outline" size={52} color="#D1D5DB" />
           </View>

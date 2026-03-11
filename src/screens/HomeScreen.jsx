@@ -45,13 +45,14 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#0D004C" }}>
       <Header location={location.area} address={location.full} />
 
       {/* ✅ ONE SCROLL CONTAINER */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 30 }}
+        backgroundColor="#FFF"
       >
         {/* 🔥 Banner */}
         <View style={{ marginTop: 10 }}>

@@ -1,18 +1,17 @@
-import React from "react";
- 
-import  { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Pressable
+  Pressable,
+  Animated,
+  StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-
 import { useCart } from "../context/CartContext";
 import { useLocationContext } from "../context/LocationContext";
 import LocationModal from "./LocationModal";
@@ -21,213 +20,356 @@ export default function Header() {
   const navigation = useNavigation();
   const { cartItems } = useCart();
   const { location } = useLocationContext();
-
   const [open, setOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchAnim = useRef(new Animated.Value(0)).current;
 
   const cartCount = Object.values(cartItems).reduce(
     (sum, item) => sum + item.quantity,
     0
   );
 
+  const onSearchFocus = () => {
+    setSearchFocused(true);
+    Animated.timing(searchAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const onSearchBlur = () => {
+    setSearchFocused(false);
+    Animated.timing(searchAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const searchBorderColor = searchAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#ffffff", "#A78BFA"],
+  });
+
+  const searchShadowOpacity = searchAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.08, 0.25],
+  });
+
   return (
     <>
-      {/* <SafeAreaView >  */}
-        <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={["#1a0050", "#0D004C", "#160040"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        {/* Decorative blobs */}
+        <View style={styles.blob1} />
+        <View style={styles.blob2} />
+        <View style={styles.blob3} />
 
-          {/* TOP ROW */}
-          <View style={styles.topRow}>
-        <Pressable
-  style={styles.locationBox}
-  onPress={() => setOpen(true)}
->
-  <Ionicons name="location-outline" size={16} color="#fff" />
-
-  <View>
-    <Text style={styles.locationTitle}>
-      {location.area}
-    </Text>
-    <Text style={styles.locationSub} numberOfLines={1}>
-      {location.full}
-    </Text>
-  </View>
-
-  <Ionicons
-    name="chevron-down"
-    size={16}
-    color="#fff"
-    style={{ marginLeft: 4 }}
-  />
-</Pressable>
-
-
-            {/* ICONS */}
-            <View style={styles.iconRow}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.circleBtn,
-                  pressed && { transform: [{ scale: 0.95 }] }
-                ]}
-                onPress={() => navigation.navigate("Notifications")}
-              >
-                <Ionicons name="notifications-outline" size={20} />
-              </Pressable>
-
-              <TouchableOpacity
-                style={styles.circleBtn}
-                onPress={() => navigation.navigate("Profile")}
-              >
-                <Ionicons name="person-outline" size={20} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.circleBtn}
-                onPress={() => navigation.navigate("Cart")}
-              >
-                <Ionicons name="cart-outline" size={20} />
-
-                {cartCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{cartCount}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+        {/* TOP ROW */}
+        <View style={styles.topRow}>
+          {/* Location */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.locationBox,
+              pressed && { opacity: 0.8 },
+            ]}
+            onPress={() => setOpen(true)}
+          >
+            <View style={styles.locationPinWrap}>
+              <Ionicons name="location" size={14} color="#A78BFA" />
             </View>
-          </View>
+            <View style={styles.locationTexts}>
+              <View style={styles.locationTitleRow}>
+                <Text style={styles.locationTitle} numberOfLines={1}>
+                  {location.area || "Set Location"}
+                </Text>
+                <Ionicons name="chevron-down" size={13} color="#A78BFA" style={{ marginLeft: 3 }} />
+              </View>
+              <Text style={styles.locationSub} numberOfLines={1}>
+                {location.full || "Tap to set your location"}
+              </Text>
+            </View>
+          </Pressable>
 
-          {/* SEARCH */}
-          <View style={styles.searchBox}>
-            <Ionicons name="search-outline" size={18} color="#666" />
-            <TextInput
-              placeholder="Search for 'Facial'"
-              style={styles.input}
-              placeholderTextColor="#666"
+          {/* Icon Buttons */}
+          <View style={styles.iconRow}>
+            <IconButton
+              name="notifications-outline"
+              onPress={() => navigation.navigate("Notifications")}
+            />
+            <IconButton
+              name="person-outline"
+              onPress={() => navigation.navigate("Profile")}
+            />
+            <IconButton
+              name="cart-outline"
+              onPress={() => navigation.navigate("Cart")}
+              badge={cartCount}
             />
           </View>
-
         </View>
-      {/* </SafeAreaView> */}
 
-      {/* LOCATION MODAL */}
-      <LocationModal
-        visible={open}
-        onClose={() => setOpen(false)}
-      />
+        {/* GREETING */}
+        <View style={styles.greetRow}>
+          <Text style={styles.greetText}>
+            Find your <Text style={styles.greetHighlight}>perfect service</Text> ✨
+          </Text>
+        </View>
+
+        {/* SEARCH BOX */}
+        <Animated.View
+          style={[
+            styles.searchBox,
+            {
+              borderColor: searchBorderColor,
+              shadowOpacity: searchShadowOpacity,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={18}
+            color={searchFocused ? "#A78BFA" : "#9CA3AF"}
+          />
+          <TextInput
+            placeholder="Search services, e.g. Facial, Cleaning..."
+            style={styles.searchInput}
+            placeholderTextColor="#9CA3AF"
+            onFocus={onSearchFocus}
+            onBlur={onSearchBlur}
+          />
+          {searchFocused && (
+            <View style={styles.searchTag}>
+              <Text style={styles.searchTagText}>Search</Text>
+            </View>
+          )}
+        </Animated.View>
+
+       
+      </LinearGradient>
+
+      <LocationModal visible={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
+function IconButton({ name, onPress, badge }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.88,
+      useNativeDriver: true,
+    }).start();
+  };
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={[styles.iconBtn, { transform: [{ scale: scaleAnim }] }]}>
+        <Ionicons name={name} size={18} color="#1a0050" />
+        {badge > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge > 9 ? "9+" : badge}</Text>
+          </View>
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  safe: {
-    backgroundColor: "#0D004C"
-  },
-
   container: {
-    padding: 22,
-    backgroundColor: "#0D004C",
-    overflow: "hidden"
+    paddingTop: 52,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    overflow: "hidden",
   },
 
-  /* Decorative elements */
-  bgCircle1: {
+  // Decorative blobs
+  blob1: {
     position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    top: -40,
-    right: -30
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(167, 139, 250, 0.08)",
+    top: -60,
+    right: -50,
   },
-
-  bgCircle2: {
+  blob2: {
     position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    top: 40,
-    left: -30
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(167, 139, 250, 0.06)",
+    top: 60,
+    left: -30,
+  },
+  blob3: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    bottom: 30,
+    right: 80,
   },
 
+  // TOP ROW
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
+    marginBottom: 16,
   },
 
   locationBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6
+    gap: 8,
+    flex: 1,
+    marginRight: 10,
   },
-
+  locationPinWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: "rgba(167,139,250,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  locationTexts: {
+    flex: 1,
+  },
+  locationTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   locationTitle: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600"
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
-
   locationSub: {
-    color: "#f2c1d3",
-    fontSize: 11,
-    maxWidth: 180
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 10.5,
+    marginTop: 1,
   },
 
   iconRow: {
     flexDirection: "row",
-    gap: 10
+    gap: 8,
   },
-
-  circleBtn: {
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: "#fff",
-    width: 38,
-    height: 38,
-    borderRadius: 19,
     justifyContent: "center",
     alignItems: "center",
-
-    // premium shadow
     shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
+  },
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "#EF4444",
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: "#0D004C",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 9,
+    fontWeight: "800",
   },
 
-  badge: {
-  position: "absolute",
-  top: -4,
-  right: -4,
-  backgroundColor: "#FF3B30",
-  width: 18,
-  height: 18,
-  borderRadius: 9,
-  justifyContent: "center",
-  alignItems: "center"
-},
-badgeText: {
-  color: "#fff",
-  fontSize: 10,
-  fontWeight: "700"
-}
-,
+  // GREETING
+  greetRow: {
+    marginBottom: 12,
+  },
+  greetText: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  greetHighlight: {
+    color: "#A78BFA",
+    fontWeight: "700",
+  },
+
+  // SEARCH
   searchBox: {
-    marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    height: 44,
-
-    // floating effect
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 5
+    height: 48,
+    borderWidth: 1.5,
+    shadowColor: "#A78BFA",
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 6,
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13.5,
+    color: "#111",
+    fontWeight: "400",
+  },
+  searchTag: {
+    backgroundColor: "#EDE9FE",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  searchTagText: {
+    color: "#7C3AED",
+    fontSize: 11,
+    fontWeight: "700",
   },
 
-  input: {
-    marginLeft: 8,
-    fontSize: 14,
-    flex: 1
-  }
+  // CHIPS
+  chipRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    flexWrap: "wrap",
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  chipText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 11.5,
+    fontWeight: "500",
+  },
 });

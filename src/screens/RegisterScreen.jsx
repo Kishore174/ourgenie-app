@@ -1,14 +1,15 @@
- import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
-  Pressable,
   StyleSheet,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +22,7 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [secure, setSecure] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
@@ -29,203 +30,194 @@ export default function RegisterScreen() {
       Alert.alert("Error", "All fields are required");
       return;
     }
-
     if (password.length < 6) {
       Alert.alert("Weak password", "Minimum 6 characters");
       return;
     }
-
     try {
       setLoading(true);
       await registerUser(name, email, password);
-
-      Alert.alert("🎉 Success", "Account created successfully");
-
-      // ✅ AUTO MOVE TO LOGIN
-      setTimeout(() => {
-        navigation.replace("Login");
-      }, 800);
-
+      Alert.alert("Success 🎉", "Account created successfully");
+      setTimeout(() => navigation.replace("Login"), 800);
     } catch (err) {
       const message =
         err?.response?.data?.error ||
         err?.response?.data?.message ||
         "Registration failed";
-
-      Alert.alert("Registration Failed", message);
+      Alert.alert("Failed", message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        {/* BACK */}
-        <Pressable onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} />
-        </Pressable>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* BACK */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color="#111" />
+          </TouchableOpacity>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>Create Account</Text>
-         
-
-          {/* NAME */}
-          <View style={styles.inputBox}>
-            <Ionicons name="person-outline" size={18} />
-            <TextInput
-              placeholder="Full Name"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-            />
+          {/* HEADER */}
+          <View style={styles.headerArea}>
+            <View style={styles.logoBox}>
+              <Ionicons name="person-add" size={28} color="#0D004C" />
+            </View>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to get started</Text>
           </View>
 
-          {/* EMAIL */}
-          <View style={styles.inputBox}>
-            <Ionicons name="mail-outline" size={18} />
-            <TextInput
-              placeholder="Email address"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-            />
-          </View>
-
-          {/* PASSWORD */}
-          <View style={styles.inputBox}>
-            <Ionicons name="lock-closed-outline" size={18} />
-            <TextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={secure}
-              style={styles.input}
-            />
-            <Pressable onPress={() => setSecure(!secure)}>
-              <Ionicons
-                name={secure ? "eye-off-outline" : "eye-outline"}
-                size={18}
+          {/* FORM */}
+          <View style={styles.form}>
+            {/* NAME */}
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="person-outline" size={18} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                autoCorrect={false}
               />
-            </Pressable>
+            </View>
+
+            {/* EMAIL */}
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* PASSWORD */}
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="Min. 6 characters"
+                placeholderTextColor="#9CA3AF"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color="#6B7280"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* BUTTON */}
+            <TouchableOpacity
+              style={[styles.btn, loading && { opacity: 0.6 }]}
+              onPress={handleRegister}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* LOGIN LINK */}
+            <TouchableOpacity
+              style={styles.linkRow}
+              onPress={() => navigation.replace("Login")}
+            >
+              <Text style={styles.linkText}>
+                Already have an account?{" "}
+                <Text style={styles.linkBold}>Login</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          <Text style={styles.helper}>
-            Password must be at least 6 characters
-          </Text>
-
-          {/* REGISTER BUTTON */}
-          <Pressable
-            style={[
-              styles.btn,
-              loading && { opacity: 0.6 }
-            ]}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>CREATE ACCOUNT</Text>
-            )}
-          </Pressable>
-
-          {/* LOGIN LINK */}
-          <Pressable onPress={() => navigation.replace("Login")}>
-            <Text style={styles.link}>
-              Already have an account?{" "}
-              <Text style={{ fontWeight: "700" }}>Login</Text>
-            </Text>
-          </Pressable>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f6fa", // softer than pure white
-    padding: 16
-  },
+  safe: { flex: 1, backgroundColor: "#fff" },
+  scroll: { padding: 20, paddingTop: 16 },
 
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 22,
-    marginTop: 30,
-    borderWidth: 1,
-    borderColor: "#eef0f4" // subtle border instead of shadow
-  },
+  backBtn: { marginBottom: 24 },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#0D004C",
-    letterSpacing: 0.3,
-   
+  headerArea: { alignItems: "center", marginBottom: 36 },
+  logoBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: "#EDE9FE",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
+  title: { fontSize: 24, fontWeight: "800", color: "#0D004C", marginBottom: 6 },
+  subtitle: { fontSize: 14, color: "#6B7280" },
 
-  subtitle: {
+  form: {},
+  label: {
     fontSize: 13,
-    color: "#6b7280",
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
     marginTop: 4,
-    marginBottom: 24
   },
-
-  inputBox: {
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fafafa",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 50,
-    marginBottom: 14,
+    marginBottom: 18,
     gap: 10,
-    top:8
+    backgroundColor: "#FAFAFA",
   },
-
   input: {
     flex: 1,
     fontSize: 14,
-    color: "#111827"
-  },
-
-  helper: {
-    fontSize: 11,
-    color: "#9ca3af",
-    marginBottom: 12,
-    marginLeft: 4
+    color: "#111",
   },
 
   btn: {
-    backgroundColor: "#ff3f6c",
-    height: 50,
-    borderRadius: 14,
+    backgroundColor: "#0D004C",
+    height: 52,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10
+    marginTop: 8,
   },
+  btnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 
-  btnText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 14,
-    letterSpacing: 0.6
-  },
-
-  link: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "#0D004C",
-    fontWeight: "600"
-  }
+  linkRow: { marginTop: 24, alignItems: "center" },
+  linkText: { fontSize: 14, color: "#6B7280" },
+  linkBold: { color: "#0D004C", fontWeight: "700" },
 });
-

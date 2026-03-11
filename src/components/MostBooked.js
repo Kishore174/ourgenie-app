@@ -15,21 +15,21 @@ import { Animated, Easing } from "react-native";
 
 export default function MostBooked() {
   const [services, setServices] = useState([]);
-
   const navigation = useNavigation();
   const { cartItems, addItem, removeItem } = useCart();
   const { user } = useAuth();
 
-  useEffect(() => {
+useEffect(() => {
     api.get("catelog/products/1")
       .then(res => setServices(res.data))
       .catch(console.log);
   }, []);
+
 const scaleAnim = useState(new Animated.Value(1))[0];
 
-  const getQty = (id) => cartItems[id]?.quantity || 0;
+const getQty = (id) => cartItems[id]?.quantity || 0;
 
-  const renderItem = ({ item }) => {
+const renderItem = ({ item }) => {
     const qty = getQty(item.id);
 
     const offer =
